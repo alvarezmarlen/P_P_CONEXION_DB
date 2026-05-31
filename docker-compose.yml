@@ -15,6 +15,7 @@ services:
   backend:
     build: .
     container_name: mi_backend
+    restart: always
     ports:
       - "5000:5000"
     depends_on:

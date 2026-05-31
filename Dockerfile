@@ -18,4 +18,4 @@ COPY . .
 EXPOSE 5000
 
 # Comando de arranque
-CMD ["python", "app/app.py"]
+CMD ["python", "run.py"]
