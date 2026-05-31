@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:15.15-trixie
+    container_name: mi_bd_postgre
+    restart: always
+    environment:
+      POSTGRES_USER: usuario
+      POSTGRES_PASSWORD: usuario1234
+      POSTGRES_DB: bd_flask
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    container_name: mi_backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://usuario:usuario1234@db:5432/bd_flask
+
+volumes:
+  pgdata:
