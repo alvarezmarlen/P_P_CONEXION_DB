@@ -14,10 +14,15 @@ def create_app(config_name='default'):
     db.init_app(app)                          # ← init dentro de la función
 
 # ¡IMPORTANTE!: Importamos los modelos para que Flask-Migrate los "vea"
-    from app import models
-    
+    from app import models    
     migrate.init_app(app, db)
 
+# 👇 LÍNEAS AQUÍ ABAJO PARA EL COMANDO SEED:
+    from app.seed import seed_database
+    @app.cli.command("seed-db")
+    def seed_db_command():
+        """Rellena la base de datos con los datos de db.json"""
+        seed_database()
     
     # Aquí puedes registrar tus rutas o inicializar tu Base de Datos más adelante
     @app.route("/api/health")

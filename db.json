@@ -1,0 +1,319 @@
+{
+  "productos": [
+        {
+            "id": 1,
+            "slug": "cuelgamovil-arana",
+            "categoria": "Colgantes para móvil",
+            "productName": "Cuelgamóvil Araña",
+            "imagen": "../assets/img/catalogo/ColganteMovil-Araña1.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con mostacillas y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Acero",
+            "stock": 1
+        },
+        {
+            "id": 2,
+            "slug": "cuelgamovil-delfin",
+            "categoria": "Colgantes para móvil",
+            "productName": "Cuelgamóvil Delfin",
+            "imagen": "../assets/img/catalogo/ColganteMovil-Delfin2.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal metal de buena calidad.",
+            "materiales": "Abalorios, Acero",
+            "stock": 1
+        },
+        {
+            "id": 3,
+            "slug": "cuelgamovil-estrella-trebol",
+            "categoria": "Colgantes para móvil",
+            "productName": "Cuelgamóvil Estrella Trebol",
+            "imagen": "../assets/img/catalogo/ColganteMovil-Estrella-trebol3.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con Abalarios y nylon de alta resistencia.",
+            "materiales": "Nylon, Abalarios, Acero",
+            "stock": 1
+        },
+        {
+            "id": 4,
+            "slug": "cuelgamovil-estrella",
+            "categoria": "Colgantes para móvil",
+            "productName": "Cuelgamóvil Estrella",
+            "imagen": "../assets/img/catalogo/ColganteMovil-Estrella4.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con Abalarios y nylon de alta resistencia.",
+            "materiales": "Nylon, Abalarios, Metal",
+            "stock": 1
+        },
+        {
+            "id": 5,
+            "slug": "cuelgamovil-guitarras-hojas",
+            "categoria": "Colgantes para móvil",
+            "productName": "Cuelgamóvil Guitarras-Hojas",
+            "imagen": "../assets/img/catalogo/ColganteMovil-Guitarra-hoja5.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con Abalarios y nylon de alta resistencia.",
+            "materiales": "Nylon, Abalarios, Metal",
+            "stock": 1
+        },
+        {
+            "id": 6,
+            "slug": "cuelgamovil-guitarra",
+            "categoria": "Colgantes para móvil",
+            "productName": "Cuelgamóvil Guitarra",
+            "imagen": "../assets/img/catalogo/ColganteMovil-Guitarra6.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con Abalarios y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Metal",
+            "stock": 1
+        },
+        {
+            "id": 7,
+            "slug": "cuelgamovil-murcielago-hojas",
+            "categoria": "Colgantes para móvil",
+            "productName": "Cuelgamóvil Murcielago-Hojas",
+            "imagen": "../assets/img/catalogo/ColganteMovil-Murcielago-hoja7.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con Abalarios y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Metal",
+            "stock": 1
+        },
+        {
+            "id": 8,
+            "slug": "cuelgamovil-murcielago",
+            "categoria": "Colgantes para móvil",
+            "productName": "Cuelgamóvil Murcielago",
+            "imagen": "../assets/img/catalogo/ColganteMovil-Murcielago8.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con Abalarios y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Metal",
+            "stock": 1
+        },
+        {
+            "id": 9,
+            "slug": "collar-blanco-delfin",
+            "categoria": "Collares",
+            "productName": "Collar Blanco Delfin",
+            "imagen": "../assets/img/catalogo/CollarBlancoDelfin01.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con mostacillas y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Acero",
+            "stock": 1
+        },
+        {
+            "id": 10,
+            "slug": "collar-fresa-abalorios",
+            "categoria": "Collares",
+            "productName": "Collar Fresa abalorios",
+            "imagen": "../assets/img/catalogo/CollarFrutilla-abalorios02.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con mostacillas y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Acero",
+            "stock": 1
+        },
+        {
+            "id": 11,
+            "slug": "collar-fresa-abalorios-v2",
+            "categoria": "Collares",
+            "productName": "Collar Fresa abalorios",
+            "imagen": "../assets/img/catalogo/CollarFrutilla-abalorios03.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con mostacillas y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Acero",
+            "stock": 1
+        },
+        {
+            "id": 12,
+            "slug": "collar-fresa-cadena",
+            "categoria": "Collares",
+            "productName": "Collar Fresa cadena",
+            "imagen": "../assets/img/catalogo/CollarFrutilla04.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con mostacillas y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Acero",
+            "stock": 1
+        },
+        {
+            "id": 13,
+            "slug": "collar-piedra-azul",
+            "categoria": "Collares",
+            "productName": "Collar Piedra Azul",
+            "imagen": "../assets/img/catalogo/CollarPiedraAzul05.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con mostacillas y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Acero",
+            "stock": 1
+        },
+        {
+            "id": 14,
+            "slug": "collar-plateado-fresa",
+            "categoria": "Collares",
+            "productName": "Collar Plateado Fresa",
+            "imagen": "../assets/img/catalogo/CollarPlateado-Frutilla06.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con mostacillas y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Acero",
+            "stock": 1
+        },
+        {
+            "id": 15,
+            "slug": "collar-rosa-roja",
+            "categoria": "Collares",
+            "productName": "Collar Rosa Roja",
+            "imagen": "../assets/img/catalogo/CollarRosaRoja07.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con mostacillas y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Acero",
+            "stock": 1
+        },
+        {
+            "id": 16,
+            "slug": "collar-trebol",
+            "categoria": "Collares",
+            "productName": "Collar Trebol",
+            "imagen": "../assets/img/catalogo/CollarTrebol08.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con mostacillas y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Acero",
+            "stock": 1
+        },
+        {
+            "id": 17,
+            "slug": "pendientes-crucifijos",
+            "categoria": "Pendientes",
+            "productName": "Pendientes Crucifijos",
+            "imagen": "../assets/img/catalogo/pendientesCrucifijos1.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con mostacillas y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Acero",
+            "stock": 1
+        },
+        {
+            "id": 18,
+            "slug": "pendientes-estrella-david",
+            "categoria": "Pendientes",
+            "productName": "Pendientes Estrella David",
+            "imagen": "../assets/img/catalogo/pendientesEstrellaDavid7.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con mostacillas y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Acero",
+            "stock": 1
+        },
+        {
+            "id": 19,
+            "slug": "pendientes-hojas",
+            "categoria": "Pendientes",
+            "productName": "Pendientes Hojas",
+            "imagen": "../assets/img/catalogo/pendientesHojas2.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con mostacillas y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Acero",
+            "stock": 1
+        },
+        {
+            "id": 20,
+            "slug": "pendientes-estrella-abalorios",
+            "categoria": "Pendientes",
+            "productName": "Pendientes Estrella Abalorios",
+            "imagen": "../assets/img/catalogo/pendientesLargos-Estrella3.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con mostacillas y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Acero",
+            "stock": 1
+        },
+        {
+            "id": 21,
+            "slug": "pendientes-mariquitas",
+            "categoria": "Pendientes",
+            "productName": "Pendientes Mariquitas",
+            "imagen": "../assets/img/catalogo/pendientesMariquitas4.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con mostacillas y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Acero",
+            "stock": 1
+        },
+        {
+            "id": 22,
+            "slug": "pendientes-murcielagos",
+            "categoria": "Pendientes",
+            "productName": "Pendientes Murcielagos",
+            "imagen": "../assets/img/catalogo/pendientesMurcielagos8.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con mostacillas y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Acero",
+            "stock": 1
+        },
+        {
+            "id": 23,
+            "slug": "pendientes-rosa-perlas",
+            "categoria": "Pendientes",
+            "productName": "Pendientes Rosa & Perlas",
+            "imagen": "../assets/img/catalogo/pendientesRojos-PerlasBlancas6.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con mostacillas y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Acero",
+            "stock": 1
+        },
+        {
+            "id": 24,
+            "slug": "pulsera-colores-cruz",
+            "categoria": "Pulseras",
+            "productName": "Pulsera Colores & Cruz",
+            "imagen": "../assets/img/catalogo/PulseraCruz01.png",
+            "precio": 20,
+            "descripcion": "Pieza artesanal con mostacillas y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Acero",
+            "stock": 1
+        },
+        {
+            "id": 25,
+            "slug": "pulsera-fresa-abalorios",
+            "categoria": "Pulseras",
+            "productName": "Pulsera Fresa abalorios",
+            "imagen": "../assets/img/catalogo/PulseraFrutilla02.png",
+            "precio": 5,
+            "descripcion": "Pieza artesanal con mostacillas y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Acero",
+            "stock": 1
+        },
+        {
+            "id": 26,
+            "slug": "pulsera-azul-perlas",
+            "categoria": "Pulseras",
+            "productName": "Pulsera Azul Claro & Perlas",
+            "imagen": "../assets/img/catalogo/PulserasBlanco-AzulClaro03.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con mostacillas y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Acero",
+            "stock": 1
+        },
+        {
+            "id": 27,
+            "slug": "pulsera-verde-boton",
+            "categoria": "Pulseras",
+            "productName": "Pulsera Verde & Botón ",
+            "imagen": "../assets/img/catalogo/PulseraVerde-conBoton05.png",
+            "precio": 9,
+            "descripcion": "Pieza artesanal con mostacillas y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Acero",
+            "stock": 1
+        },
+        {
+            "id": 28,
+            "slug": "llavero-pucca",
+            "categoria": "Llaveros",
+            "productName": "Llavero Pucca",
+            "imagen": "../assets/img/catalogo/LlaveroPucca01.png",
+            "precio": 8,
+            "descripcion": "Pieza artesanal con mostacillas y nylon de alta resistencia.",
+            "materiales": "Nylon, Cristal, Acero",
+            "stock": 1
+        }
+    ],
+  "mosaico": [
+        { "categoria": "Pendientes", "imagen": "assets/img/catalogo/pendientesCrucifijos1.png", "enlace": "pages/productos.html?categoria=Pendientes"},
+        { "categoria": "Collares", "imagen": "assets/img/catalogo/CollarFrutilla-abalorios02.png", "enlace": "pages/productos.html?categoria=Collares"},
+        { "categoria": "Pulseras", "imagen": "assets/img/catalogo/PulseraCruz01.png", "enlace": "pages/productos.html?categoria=Pulseras"},
+        { "categoria": "Colgantes para móvil", "imagen": "assets/img/catalogo/ColganteMovil-Murcielago8.png", "enlace": "pages/productos.html?categoria=Colgantes para móvil"},
+        { "categoria": "Llaveros", "imagen": "../assets/img/catalogo/LlaveroPucca01.png", "enlace": "pages/productos.html?categoria=Llaveros"}
+    ]
+}
