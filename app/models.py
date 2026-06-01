@@ -64,3 +64,20 @@ class DetallePedido(db.Model):
     producto_id = db.Column(db.Integer, db.ForeignKey('productos.id'), nullable=False)
     cantidad = db.Column(db.Integer, nullable=False)
     precio_unitario = db.Column(db.Numeric(10, 2), nullable=False)
+
+    producto = db.relationship('Producto')
+    
+    
+    
+    
+class Carrito(db.Model):
+    __tablename__ = 'carrito'
+        
+    id = db.Column(db.Integer, primary_key=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    producto_id = db.Column(db.Integer, db.ForeignKey('productos.id'), nullable=False)
+    cantidad = db.Column(db.Integer, default=1, nullable=False)
+        
+    # Relaciones para acceder fácilmente a los datos del producto desde el carrito
+    producto = db.relationship('Producto', backref='en_carritos')
+    usuario = db.relationship('Usuario', backref='carrito_items')

@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity 
 from app.extensions import db
-from app.models import Categoria, Producto, Usuario
+from app.models import Categoria, Producto, Usuario, Carrito, Pedido, DetallePedido
 
 
 # Creamos el Blueprint para agrupar las rutas de la API bajo el prefijo /api
@@ -171,3 +171,167 @@ def logout():
     # Como el JWT se guarda en el Frontend (Local固定Storage), cerrar sesión 
     # significa decirle al Frontend que borre el token.
     return jsonify({"message": "Sesión cerrada con éxito. Borra el token del cliente."}), 200
+
+
+
+
+# ==========================================
+# 🛒 NUEVOS ENDPOINTS DE LA FASE 4 (CARRITO Y PEDIDOS)
+# ==========================================
+
+# --- 4.1.1: GET /api/carrito (Obtener el carrito del usuario) ---
+@api_bp.route('/carrito', methods=['GET'])
+@jwt_required()
+def get_carrito():
+    usuario_id = get_jwt_identity()
+    items = Carrito.query.filter_by(usuario_id=usuario_id).all()
+    
+    resultado = []
+    for item in items:
+        resultado.append({
+            "id": item.id,
+            "producto_id": item.producto_id,
+            "nombre": item.producto.nombre,
+            "precio": float(item.producto.precio),
+            "imagen": item.producto.imagen,
+            "cantidad": item.cantidad,
+            "subtotal": float(item.producto.precio) * item.cantidad
+        })
+    return jsonify(resultado), 200
+
+
+# --- 4.1.2: POST /api/carrito (Añadir producto al carrito) ---
+@api_bp.route('/carrito', methods=['POST'])
+@jwt_required()
+def agregar_al_carrito():
+    usuario_id = get_jwt_identity()
+    datos = request.get_json()
+    
+    producto_id = datos.get('producto_id')
+    cantidad = datos.get('cantidad', 1)
+    
+    if not producto_id:
+        return jsonify({"message": "Falta el producto_id"}), 400
+        
+    prod = Producto.query.get(producto_id)
+    if not prod:
+        return jsonify({"message": "Producto no encontrado"}), 404
+        
+    item_existente = Carrito.query.filter_by(usuario_id=usuario_id, producto_id=producto_id).first()
+    if item_existente:
+        item_existente.cantidad += cantidad
+    else:
+        nuevo_item = Carrito(usuario_id=usuario_id, producto_id=producto_id, cantidad=cantidad)
+        db.session.add(nuevo_item)
+        
+    db.session.commit()
+    return jsonify({"message": "Producto añadido al carrito correctamente"}), 200
+
+
+# --- 4.1.3: PUT /api/carrito/<int:item_id> (Actualizar cantidad) ---
+@api_bp.route('/carrito/<int:item_id>', methods=['PUT'])
+@jwt_required()
+def actualizar_cantidad_carrito(item_id):
+    usuario_id = get_jwt_identity()
+    datos = request.get_json()
+    nueva_cantidad = datos.get('cantidad')
+    
+    if not nueva_cantidad or nueva_cantidad <= 0:
+        return jsonify({"message": "Cantidad no válida"}), 400
+        
+    item = Carrito.query.filter_by(id=item_id, usuario_id=usuario_id).first_or_404()
+    item.cantidad = nueva_cantidad
+    db.session.commit()
+    
+    return jsonify({"message": "Cantidad actualizada"}), 200
+
+
+# --- 4.1.4: DELETE /api/carrito/<int:item_id> (Eliminar un ítem del carrito) ---
+@api_bp.route('/carrito/<int:item_id>', methods=['DELETE'])
+@jwt_required()
+def eliminar_del_carrito(item_id):
+    usuario_id = get_jwt_identity()
+    item = Carrito.query.filter_by(id=item_id, usuario_id=usuario_id).first_or_404()
+    
+    db.session.delete(item)
+    db.session.commit()
+    return jsonify({"message": "Producto eliminado del carrito"}), 200
+
+
+# --- 4.2: POST /api/pedidos (Crear pedido desde el carrito / Checkout) ---
+@api_bp.route('/pedidos', methods=['POST'])
+@jwt_required()
+def crear_pedido():
+    usuario_id = get_jwt_identity()
+    datos = request.get_json()
+    
+    direccion = datos.get('direccion_envio')
+    if not direccion:
+        return jsonify({"message": "Falta la dirección de envío"}), 400
+        
+    items_carrito = Carrito.query.filter_by(usuario_id=usuario_id).all()
+    if not items_carrito:
+        return jsonify({"message": "El carrito está vacío. No puedes crear un pedido."}), 400
+        
+    total_pedido = 0
+    for item in items_carrito:
+        if item.producto.stock < item.cantidad:
+            return jsonify({"message": f"No hay suficiente stock de: {item.producto.nombre}"}), 400
+        total_pedido += float(item.producto.precio) * item.cantidad
+
+    nuevo_pedido = Pedido(
+        usuario_id=usuario_id,
+        total=total_pedido,
+        direccion_envio=direccion
+    )
+    db.session.add(nuevo_pedido)
+    db.session.flush() 
+    
+    for item in items_carrito:
+        nuevo_detalle = DetallePedido(
+            pedido_id=nuevo_pedido.id,
+            producto_id=item.producto_id,
+            cantidad=item.cantidad,
+            precio_unitario=item.producto.precio
+        )
+        db.session.add(nuevo_detalle)
+        
+        item.producto.stock -= item.cantidad
+        db.session.delete(item)
+        
+    db.session.commit()
+    
+    return jsonify({
+        "message": "Pedido procesado con éxito",
+        "pedido_id": nuevo_pedido.id,
+        "total": total_pedido
+    }), 201
+
+
+# --- 4.3: GET /api/pedidos (Ver historial de compras del usuario) ---
+@api_bp.route('/pedidos', methods=['GET'])
+@jwt_required()
+def get_historial_pedidos():
+    usuario_id = get_jwt_identity()
+    pedidos = Pedido.query.filter_by(usuario_id=usuario_id).order_by(Pedido.fecha.desc()).all()
+    
+    resultado = []
+    for ped in pedidos:
+        detalles_lista = []
+        for det in ped.detalles:
+            detalles_lista.append({
+                "producto_id": det.producto_id,
+                "nombre": det.producto.nombre,
+                "cantidad": det.cantidad,
+                "precio_unitario": float(det.precio_unitario)
+            })
+            
+        resultado.append({
+            "id": ped.id,
+            "fecha": ped.fecha,
+            "total": float(ped.total),
+            "direccion_envio": ped.direccion_envio,
+            "articulos": detalles_lista
+        })
+        
+    return jsonify(resultado), 200
