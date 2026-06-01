@@ -1,5 +1,8 @@
 from flask import Blueprint, jsonify, request
-from app.models import Categoria, Producto
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity 
+from app.extensions import db
+from app.models import Categoria, Producto, Usuario
+
 
 # Creamos el Blueprint para agrupar las rutas de la API bajo el prefijo /api
 api_bp = Blueprint('api', __name__, url_prefix='/api')
@@ -81,3 +84,90 @@ def get_producto_detalle(producto_id):
     }
     
     return jsonify(detalle), 200
+
+
+
+# ==========================================
+# 🔐 NUEVOS ENDPOINTS DE LA FASE 3 (ABAJO DEL TODO)
+# ==========================================
+
+# --- 3.1: POST /api/auth/register (Registro de Usuarios) ---
+@api_bp.route('/auth/register', methods=['POST'])
+def register():
+    """Registra un nuevo usuario en la base de datos"""
+    datos = request.get_json()
+    
+    if not datos or not datos.get('nombre') or not datos.get('email') or not datos.get('password'):
+        return jsonify({"message": "Faltan campos obligatorios (nombre, email, password)"}), 400
+        
+    if Usuario.query.filter_by(email=datos['email']).first():
+        return jsonify({"message": "Este correo electrónico ya está registrado"}), 400
+        
+    nuevo_usuario = Usuario(
+        nombre=datos['nombre'],
+        email=datos['email']
+    )
+    nuevo_usuario.set_password(datos['password'])
+    
+    db.session.add(nuevo_usuario)
+    db.session.commit()
+    
+    return jsonify({"message": "Usuario registrado con éxito"}), 201
+
+
+# --- 3.2: POST /api/auth/login (Inicio de sesión y entrega de Token) ---
+@api_bp.route('/auth/login', methods=['POST'])
+def login():
+    """Verifica las credenciales y devuelve un token JWT único"""
+    datos = request.get_json()
+    
+    if not datos or not datos.get('email') or not datos.get('password'):
+        return jsonify({"message": "Faltan el email o la contraseña"}), 400
+        
+    usuario = Usuario.query.filter_by(email=datos['email']).first()
+    
+    if not usuario or not usuario.check_password(datos['password']):
+        return jsonify({"message": "Credenciales incorrectas"}), 401
+        
+    token_acceso = create_access_token(identity=str(usuario.id))
+    
+    return jsonify({
+        "message": "Inicio de sesión correcto",
+        "token": token_acceso,
+        "usuario": {
+            "id": usuario.id,
+            "nombre": usuario.nombre,
+            "email": usuario.email
+        }
+    }), 200
+    
+    
+    
+    # --- 3.3 y 3.4: GET /api/auth/me (Perfil del usuario protegido con JWT) ---
+@api_bp.route('/auth/me', methods=['GET'])
+@jwt_required()  # ← Este es el middleware que protege la ruta (Punto 3.4)
+def get_perfil():
+    """Devuelve los datos del usuario dueño del token actual"""
+    # Recuperamos el ID del usuario que guardamos dentro del token al hacer login
+    usuario_id = get_jwt_identity()
+    
+    # Buscamos al usuario en la base de datos
+    usuario = Usuario.query.get(usuario_id)
+    if not usuario:
+        return jsonify({"message": "Usuario no encontrado"}), 404
+        
+    return jsonify({
+        "id": usuario.id,
+        "nombre": usuario.nombre,
+        "email": usuario.email,
+        "fecha_registro": usuario.fecha_registro
+    }), 200
+
+
+# --- 3.6: POST /api/auth/logout (Cerrar sesión) ---
+@api_bp.route('/auth/logout', methods=['POST'])
+def logout():
+    """Cierra la sesión del usuario (en un sistema básico destruye el token en el cliente)"""
+    # Como el JWT se guarda en el Frontend (Local固定Storage), cerrar sesión 
+    # significa decirle al Frontend que borre el token.
+    return jsonify({"message": "Sesión cerrada con éxito. Borra el token del cliente."}), 200

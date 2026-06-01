@@ -2,15 +2,21 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from app.config import config_options
 from app.extensions import db, migrate
+from flask_jwt_extended import JWTManager
 
 def create_app(config_name='default'):
     app = Flask(__name__)
     CORS(app)
 
 
-# LE DECIMOS A FLASK QUE CARGUE LAS CONFIGURACIONES:
+# LE DECIMOS A FLASK QUE CARGUE LAS CONFIGURACIONES base:
     app.config.from_object(config_options[config_name])
+
+# 2. Ahora añadimos la clave secreta de JWT e inicializamos el manager
+    app.config["JWT_SECRET_KEY"] = "cambia-esto-por-una-frase-super-secreta" # En producción irá al .env
+    jwt = JWTManager(app)  
     
+# 3. Inicializamos las extensiones de base de datos      
     db.init_app(app)                          # ← init dentro de la función
 
 # ¡IMPORTANTE!: Importamos los modelos para que Flask-Migrate los "vea"
