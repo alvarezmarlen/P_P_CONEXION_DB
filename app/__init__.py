@@ -29,4 +29,9 @@ def create_app(config_name='default'):
     def health():
         return jsonify({"status": "ok", "message": "Backend funcionando"})
 
+# 🔗 REGISTRAMOS EL NUEVO ARCHIVO DE RUTAS AQUÍ:
+    from app.routes import api_bp
+    app.register_blueprint(api_bp)
+    
+    
     return app
