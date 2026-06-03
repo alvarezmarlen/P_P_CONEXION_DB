@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity 
 from app.extensions import db
-from app.models import Categoria, Producto, Usuario, Carrito, Pedido, DetallePedido
+from app.models import Categoria, Producto, Usuario, Carrito, Pedido, DetallePedido, Contacto
 
 
 # Creamos el Blueprint para agrupar las rutas de la API bajo el prefijo /api
@@ -335,3 +335,34 @@ def get_historial_pedidos():
         })
         
     return jsonify(resultado), 200
+
+
+
+
+# ==========================================
+# ✉️ FASE 5: FORMULARIO DE CONTACTO
+# ==========================================
+
+@api_bp.route('/contacto', methods=['POST'])
+def enviar_contacto():
+    datos = request.get_json()
+    
+    nombre = datos.get('nombre')
+    email = datos.get('email')
+    mensaje = datos.get('mensaje')
+    
+    # Validamos que el cliente no envíe campos vacíos
+    if not nombre or not email or not mensaje:
+        return jsonify({"message": "Todos los campos son obligatorios (nombre, email, mensaje)"}), 400
+        
+    # Guardamos el mensaje en la base de datos
+    nuevo_mensaje = Contacto(
+        nombre=nombre,
+        email=email,
+        mensaje=mensaje
+    )
+    
+    db.session.add(nuevo_mensaje)
+    db.session.commit()
+    
+    return jsonify({"message": "Mensaje de contacto enviado con éxito"}), 201
