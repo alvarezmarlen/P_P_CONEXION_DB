@@ -216,6 +216,9 @@ def agregar_al_carrito():
     prod = Producto.query.get(producto_id)
     if not prod:
         return jsonify({"message": "Producto no encontrado"}), 404
+
+    if prod.stock < cantidad:
+        return jsonify({"message": f"No hay suficiente stock de: {prod.nombre}"}), 400
         
     item_existente = Carrito.query.filter_by(usuario_id=usuario_id, producto_id=producto_id).first()
     if item_existente:

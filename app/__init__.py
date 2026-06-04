@@ -3,6 +3,7 @@ from flask_cors import CORS
 from app.config import config_options
 from app.extensions import db, migrate
 from flask_jwt_extended import JWTManager
+from datetime import timedelta
 
 def create_app(config_name='default'):
     app = Flask(__name__)
@@ -13,8 +14,11 @@ def create_app(config_name='default'):
     app.config.from_object(config_options[config_name])
 
 # 2. Ahora añadimos la clave secreta de JWT e inicializamos el manager
-    app.config["JWT_SECRET_KEY"] = "cambia-esto-por-una-frase-super-secreta" # En producción irá al .env
+    app.config["JWT_SECRET_KEY"] = "cambia-esto-por-una-frase-super-secreta"
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
     jwt = JWTManager(app)  
+
+
     
 # 3. Inicializamos las extensiones de base de datos      
     db.init_app(app)                          # ← init dentro de la función
