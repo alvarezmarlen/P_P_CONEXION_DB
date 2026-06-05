@@ -1,3 +1,4 @@
+import os
 from flask import Flask, jsonify
 from flask_cors import CORS
 from app.config import config_options
@@ -14,9 +15,14 @@ def create_app(config_name='default'):
     app.config.from_object(config_options[config_name])
 
 # 2. Ahora añadimos la clave secreta de JWT e inicializamos el manager
-    app.config["JWT_SECRET_KEY"] = "cambia-esto-por-una-frase-super-secreta"
+    app.config["JWT_SECRET_KEY"] = os.environ.get("JWT_SECRET_KEY", "dev-insecure-change-in-prod")
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
     jwt = JWTManager(app)  
+
+    
+    UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'uploads')
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
     
@@ -42,6 +48,9 @@ def create_app(config_name='default'):
 # 🔗 REGISTRAMOS EL NUEVO ARCHIVO DE RUTAS AQUÍ:
     from app.routes import api_bp
     app.register_blueprint(api_bp)
+    
+    from app.routes import admin_bp
+    app.register_blueprint(admin_bp)
     
     
     return app

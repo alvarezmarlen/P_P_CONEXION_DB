@@ -1,11 +1,15 @@
+import os
+from functools import wraps
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity 
 from app.extensions import db
 from app.models import Categoria, Producto, Usuario, Carrito, Pedido, DetallePedido, Contacto
+from werkzeug.utils import secure_filename
 
 
 # Creamos el Blueprint para agrupar las rutas de la API bajo el prefijo /api
 api_bp = Blueprint('api', __name__, url_prefix='/api')
+admin_bp = Blueprint('admin', __name__, url_prefix='/api/admin')
 
 # --- 2.1: GET /api/categorias ---
 @api_bp.route('/categorias', methods=['GET'])
@@ -103,9 +107,11 @@ def register():
     if Usuario.query.filter_by(email=datos['email']).first():
         return jsonify({"message": "Este correo electrónico ya está registrado"}), 400
         
+    es_admin = Usuario.query.count() == 0
     nuevo_usuario = Usuario(
         nombre=datos['nombre'],
-        email=datos['email']
+        email=datos['email'],
+        is_admin=es_admin
     )
     nuevo_usuario.set_password(datos['password'])
     
@@ -137,7 +143,8 @@ def login():
         "usuario": {
             "id": usuario.id,
             "nombre": usuario.nombre,
-            "email": usuario.email
+            "email": usuario.email,
+            "is_admin": usuario.is_admin
         }
     }), 200
     
@@ -160,7 +167,8 @@ def get_perfil():
         "id": usuario.id,
         "nombre": usuario.nombre,
         "email": usuario.email,
-        "fecha_registro": usuario.fecha_registro
+        "fecha_registro": usuario.fecha_registro,
+        "is_admin": usuario.is_admin
     }), 200
 
 
@@ -369,3 +377,325 @@ def enviar_contacto():
     db.session.commit()
     
     return jsonify({"message": "Mensaje de contacto enviado con éxito"}), 201
+
+
+# ==========================================
+# 🛠️ PANEL DE ADMINISTRACIÓN (FASE ADMIN)
+# ==========================================
+
+# --- Decorador para verificar que el usuario es admin ---
+def admin_required(fn):
+    @wraps(fn)
+    @jwt_required()
+    def wrapper(*args, **kwargs):
+        usuario_id = get_jwt_identity()
+        usuario = Usuario.query.get(usuario_id)
+        if not usuario or not usuario.is_admin:
+            return jsonify({"message": "Acceso denegado: se requieren permisos de administrador"}), 403
+        return fn(*args, **kwargs)
+    return wrapper
+
+
+# --- Helper: generar slug único ---
+def generar_slug(nombre):
+    import re
+    slug = re.sub(r'[^a-z0-9]+', '-', nombre.lower()).strip('-')
+    original = slug
+    contador = 1
+    while Producto.query.filter_by(slug=slug).first():
+        slug = f"{original}-{contador}"
+        contador += 1
+    return slug
+
+
+# ==========================================
+# 📦 CRUD PRODUCTOS
+# ==========================================
+
+@admin_bp.route('/productos', methods=['GET'])
+@admin_required
+def admin_get_productos():
+    productos = Producto.query.order_by(Producto.id).all()
+    return jsonify([{
+        "id": p.id,
+        "nombre": p.nombre,
+        "slug": p.slug,
+        "descripcion": p.descripcion,
+        "precio": float(p.precio),
+        "imagen": p.imagen,
+        "materiales": p.materiales,
+        "stock": p.stock,
+        "categoria_id": p.categoria_id
+    } for p in productos]), 200
+
+
+@admin_bp.route('/productos', methods=['POST'])
+@admin_required
+def admin_crear_producto():
+    datos = request.get_json()
+    if not datos or not datos.get('nombre'):
+        return jsonify({"message": "El nombre del producto es obligatorio"}), 400
+    nombre = datos['nombre']
+    slug = datos.get('slug') or generar_slug(nombre)
+    producto = Producto(
+        nombre=nombre,
+        slug=slug,
+        descripcion=datos.get('descripcion', ''),
+        precio=datos.get('precio', 0),
+        imagen=datos.get('imagen', ''),
+        materiales=datos.get('materiales', ''),
+        stock=datos.get('stock', 0),
+        categoria_id=datos.get('categoria_id', 1)
+    )
+    db.session.add(producto)
+    db.session.commit()
+    return jsonify({"message": "Producto creado con éxito", "id": producto.id}), 201
+
+
+@admin_bp.route('/productos/<int:producto_id>', methods=['PUT'])
+@admin_required
+def admin_editar_producto(producto_id):
+    producto = Producto.query.get(producto_id)
+    if not producto:
+        return jsonify({"message": "Producto no encontrado"}), 404
+    datos = request.get_json()
+    if 'nombre' in datos:
+        producto.nombre = datos['nombre']
+    if 'descripcion' in datos:
+        producto.descripcion = datos['descripcion']
+    if 'precio' in datos:
+        producto.precio = datos['precio']
+    if 'imagen' in datos:
+        producto.imagen = datos['imagen']
+    if 'materiales' in datos:
+        producto.materiales = datos['materiales']
+    if 'stock' in datos:
+        producto.stock = datos['stock']
+    if 'categoria_id' in datos:
+        producto.categoria_id = datos['categoria_id']
+    db.session.commit()
+    return jsonify({"message": "Producto actualizado con éxito"}), 200
+
+
+@admin_bp.route('/productos/<int:producto_id>', methods=['DELETE'])
+@admin_required
+def admin_eliminar_producto(producto_id):
+    producto = Producto.query.get(producto_id)
+    if not producto:
+        return jsonify({"message": "Producto no encontrado"}), 404
+    if DetallePedido.query.filter_by(producto_id=producto_id).first():
+        return jsonify({"message": "No se puede eliminar un producto que ya tiene pedidos asociados"}), 400
+    Carrito.query.filter_by(producto_id=producto_id).delete()
+    db.session.delete(producto)
+    db.session.commit()
+    return jsonify({"message": "Producto eliminado con éxito"}), 200
+
+
+# ==========================================
+# 🏷️ CRUD CATEGORÍAS
+# ==========================================
+
+@admin_bp.route('/categorias', methods=['GET'])
+@admin_required
+def admin_get_categorias():
+    categorias = Categoria.query.order_by(Categoria.id).all()
+    return jsonify([{
+        "id": c.id,
+        "nombre": c.nombre,
+        "imagen": c.imagen
+    } for c in categorias]), 200
+
+
+@admin_bp.route('/categorias', methods=['POST'])
+@admin_required
+def admin_crear_categoria():
+    datos = request.get_json()
+    if not datos or not datos.get('nombre'):
+        return jsonify({"message": "El nombre de la categoría es obligatorio"}), 400
+    if Categoria.query.filter_by(nombre=datos['nombre']).first():
+        return jsonify({"message": "Ya existe una categoría con ese nombre"}), 400
+    categoria = Categoria(
+        nombre=datos['nombre'],
+        imagen=datos.get('imagen', '')
+    )
+    db.session.add(categoria)
+    db.session.commit()
+    return jsonify({"message": "Categoría creada con éxito", "id": categoria.id}), 201
+
+
+@admin_bp.route('/categorias/<int:categoria_id>', methods=['PUT'])
+@admin_required
+def admin_editar_categoria(categoria_id):
+    categoria = Categoria.query.get(categoria_id)
+    if not categoria:
+        return jsonify({"message": "Categoría no encontrada"}), 404
+    datos = request.get_json()
+    if 'nombre' in datos:
+        if Categoria.query.filter(Categoria.nombre == datos['nombre'], Categoria.id != categoria_id).first():
+            return jsonify({"message": "Ya existe otra categoría con ese nombre"}), 400
+        categoria.nombre = datos['nombre']
+    if 'imagen' in datos:
+        categoria.imagen = datos['imagen']
+    db.session.commit()
+    return jsonify({"message": "Categoría actualizada con éxito"}), 200
+
+
+@admin_bp.route('/categorias/<int:categoria_id>', methods=['DELETE'])
+@admin_required
+def admin_eliminar_categoria(categoria_id):
+    categoria = Categoria.query.get(categoria_id)
+    if not categoria:
+        return jsonify({"message": "Categoría no encontrada"}), 404
+    if Producto.query.filter_by(categoria_id=categoria_id).first():
+        return jsonify({"message": "No se puede eliminar una categoría que tiene productos asociados"}), 400
+    db.session.delete(categoria)
+    db.session.commit()
+    return jsonify({"message": "Categoría eliminada con éxito"}), 200
+
+
+# ==========================================
+# 📋 LISTAR PEDIDOS (ADMIN)
+# ==========================================
+
+@admin_bp.route('/pedidos', methods=['GET'])
+@admin_required
+def admin_get_pedidos():
+    pedidos = Pedido.query.order_by(Pedido.fecha.desc()).all()
+    resultado = []
+    for ped in pedidos:
+        usuario = Usuario.query.get(ped.usuario_id)
+        detalles_lista = []
+        for det in ped.detalles:
+            detalles_lista.append({
+                "producto_id": det.producto_id,
+                "nombre": det.producto.nombre if det.producto else "Eliminado",
+                "cantidad": det.cantidad,
+                "precio_unitario": float(det.precio_unitario)
+            })
+        resultado.append({
+            "id": ped.id,
+            "usuario_id": ped.usuario_id,
+            "usuario_nombre": usuario.nombre if usuario else "Desconocido",
+            "usuario_email": usuario.email if usuario else "—",
+            "fecha": ped.fecha,
+            "total": float(ped.total),
+            "direccion_envio": ped.direccion_envio,
+            "articulos": detalles_lista
+        })
+    return jsonify(resultado), 200
+
+
+# ==========================================
+# 👥 CRUD USUARIOS (ADMIN)
+# ==========================================
+
+@admin_bp.route('/usuarios', methods=['GET'])
+@admin_required
+def admin_get_usuarios():
+    usuarios = Usuario.query.order_by(Usuario.id).all()
+    return jsonify([{
+        "id": u.id,
+        "nombre": u.nombre,
+        "email": u.email,
+        "is_admin": u.is_admin,
+        "fecha_registro": u.fecha_registro
+    } for u in usuarios]), 200
+
+
+@admin_bp.route('/usuarios', methods=['POST'])
+@admin_required
+def admin_crear_usuario():
+    datos = request.get_json()
+    if not datos or not datos.get('nombre') or not datos.get('email') or not datos.get('password'):
+        return jsonify({"message": "Faltan campos obligatorios (nombre, email, password)"}), 400
+    if Usuario.query.filter_by(email=datos['email']).first():
+        return jsonify({"message": "Ya existe un usuario con ese email"}), 400
+    nuevo = Usuario(
+        nombre=datos['nombre'],
+        email=datos['email'],
+        is_admin=datos.get('is_admin', False)
+    )
+    nuevo.set_password(datos['password'])
+    db.session.add(nuevo)
+    db.session.commit()
+    return jsonify({"message": "Usuario creado con éxito", "id": nuevo.id}), 201
+
+
+@admin_bp.route('/usuarios/<int:usuario_id>', methods=['PUT'])
+@admin_required
+def admin_editar_usuario(usuario_id):
+    usuario = Usuario.query.get_or_404(usuario_id)
+    datos = request.get_json()
+    if 'nombre' in datos:
+        usuario.nombre = datos['nombre']
+    if 'email' in datos:
+        if datos['email'] != usuario.email and Usuario.query.filter_by(email=datos['email']).first():
+            return jsonify({"message": "Ya existe otro usuario con ese email"}), 400
+        usuario.email = datos['email']
+    if 'is_admin' in datos:
+        usuario_id_actual = get_jwt_identity()
+        if str(usuario.id) == usuario_id_actual and datos['is_admin'] is False:
+            return jsonify({"message": "No puedes quitarte tus propios permisos de administrador"}), 400
+        admin_count = Usuario.query.filter_by(is_admin=True).count()
+        if datos['is_admin'] is False and usuario.is_admin and admin_count <= 1:
+            return jsonify({"message": "Debe haber al menos un administrador en el sistema"}), 400
+        usuario.is_admin = datos['is_admin']
+    db.session.commit()
+    return jsonify({"message": "Usuario actualizado con éxito"}), 200
+
+
+@admin_bp.route('/usuarios/<int:usuario_id>/password', methods=['PUT'])
+@admin_required
+def admin_reset_password(usuario_id):
+    usuario = Usuario.query.get_or_404(usuario_id)
+    datos = request.get_json()
+    nueva_password = datos.get('password')
+    if not nueva_password or len(nueva_password) < 6:
+        return jsonify({"message": "La contraseña debe tener al menos 6 caracteres"}), 400
+    usuario.set_password(nueva_password)
+    db.session.commit()
+    return jsonify({"message": "Contraseña actualizada con éxito"}), 200
+
+
+@admin_bp.route('/usuarios/<int:usuario_id>', methods=['DELETE'])
+@admin_required
+def admin_eliminar_usuario(usuario_id):
+    usuario_id_actual = get_jwt_identity()
+    if str(usuario_id) == usuario_id_actual:
+        return jsonify({"message": "No puedes eliminarte a ti mismo"}), 400
+    usuario = Usuario.query.get_or_404(usuario_id)
+    if Pedido.query.filter_by(usuario_id=usuario_id).first():
+        return jsonify({"message": "No se puede eliminar un usuario que tiene pedidos asociados"}), 400
+    Carrito.query.filter_by(usuario_id=usuario_id).delete()
+    db.session.delete(usuario)
+    db.session.commit()
+    return jsonify({"message": "Usuario eliminado con éxito"}), 200
+
+
+# ==========================================
+# 🖼️ SUBIR IMAGEN
+# ==========================================
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@admin_bp.route('/upload', methods=['POST'])
+@admin_required
+def admin_upload():
+    if 'imagen' not in request.files:
+        return jsonify({"message": "No se envió ningún archivo"}), 400
+    archivo = request.files['imagen']
+    if archivo.filename == '' or not allowed_file(archivo.filename):
+        return jsonify({"message": "Formato de imagen no válido (usa png, jpg, gif, webp)"}), 400
+    from flask import current_app
+    filename = secure_filename(archivo.filename)
+    # Evitar sobrescribir: agregar timestamp
+    import time
+    name, ext = os.path.splitext(filename)
+    filename = f"{name}_{int(time.time())}{ext}"
+    upload_path = current_app.config['UPLOAD_FOLDER']
+    archivo.save(os.path.join(upload_path, filename))
+    url = f"/static/uploads/{filename}"
+    return jsonify({"message": "Imagen subida con éxito", "url": url}), 200
