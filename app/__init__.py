@@ -8,8 +8,7 @@ from datetime import timedelta
 
 def create_app(config_name='default'):
     app = Flask(__name__)
-    CORS(app)
-
+    CORS(app, resources={r"/api/*": {"origins": "https://store-sumi-frontend.onrender.com"}})
 
 # LE DECIMOS A FLASK QUE CARGUE LAS CONFIGURACIONES base:
     app.config.from_object(config_options[config_name])
